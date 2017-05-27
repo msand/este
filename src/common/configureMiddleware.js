@@ -18,17 +18,19 @@ const injectMiddleware = deps =>
         );
 
 const configureMiddleware = (
+  apollo: any,
   initialState: any,
   platformDeps: any,
   platformMiddleware: any,
 ) => {
-  const deps = configureDeps(initialState, platformDeps);
+  const deps = { apollo, ...configureDeps(initialState, platformDeps) };
   const rootEpic = configureEpics(deps);
   const epicMiddleware = createEpicMiddleware(rootEpic);
 
   const middleware = [
     injectMiddleware(deps),
     epicMiddleware,
+    apollo.middleware(),
     ...platformMiddleware,
   ];
 

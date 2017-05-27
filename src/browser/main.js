@@ -7,6 +7,7 @@ import configureFound from './configureFound';
 import configureReporting from '../common/configureReporting';
 import configureStorage from '../common/configureStorage';
 import configureStore from '../common/configureStore';
+import initClient from '../common/lib/apollo/initClient';
 import localforage from 'localforage';
 import uuid from 'uuid';
 import { persistStore } from 'redux-persist';
@@ -23,9 +24,13 @@ const reportingMiddleware = configureReporting({
 // medium.com/@taion/react-routing-and-data-fetching-ec519428135c
 const found = configureFound(Root.routeConfig);
 
+const headers = {};
+const client = initClient(headers, initialState, localforage);
+
 const store = configureStore({
-  initialState,
-  platformDeps: { uuid },
+  client,
+  initialState: client.initialState,
+  platformDeps: { uuid, storage: localforage },
   platformReducers: { found: found.reducer },
   platformMiddleware: [reportingMiddleware],
   platformStoreEnhancers: found.storeEnhancers,
@@ -50,7 +55,7 @@ found.getRenderArgs(store, renderArgs => {
       found.replaceRouteConfig(NextRoot.routeConfig);
       found.getRenderArgs(store, renderArgs => {
         ReactDOM.render(
-          <NextRoot renderArgs={renderArgs} store={store} />,
+          <NextRoot renderArgs={renderArgs} client={client} store={store} />,
           appElement,
         );
       });
@@ -69,7 +74,7 @@ found.getRenderArgs(store, renderArgs => {
   };
 
   ReactDOM.render(
-    <Root renderArgs={renderArgs} store={store} />,
+    <Root renderArgs={renderArgs} client={client} store={store} />,
     appElement,
     afterInitialRender,
   );

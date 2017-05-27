@@ -8,12 +8,14 @@ import config from '../config';
 import configureFela from '../../browser/configureFela';
 import configureFound from '../../browser/configureFound';
 import configureStore from '../../common/configureStore';
+import initClient from '../../common/lib/apollo/initClient';
 import createInitialState from './createInitialState';
 import serialize from 'serialize-javascript';
 import { RedirectException } from 'found';
 import { RouterProvider } from 'found/lib/server';
 import { ServerProtocol } from 'farce';
 import { renderToStaticMarkup, renderToString } from 'react-dom/server';
+import { getDataFromTree } from 'react-apollo';
 
 // createInitialState loads files, so it must be called once.
 const initialState = createInitialState();
@@ -26,10 +28,12 @@ const getLocale = req =>
     ? config.defaultLocale
     : req.acceptsLanguages(config.locales) || config.defaultLocale;
 
-const createStore = (found, req): Object =>
+const createStore = (found, req, client): Object =>
   configureStore({
+    client,
     initialState: {
       ...initialState,
+      ...client.initialState,
       device: {
         ...initialState.device,
         host: getHost(req),
@@ -44,15 +48,17 @@ const createStore = (found, req): Object =>
     platformStoreEnhancers: found.storeEnhancers,
   });
 
-const renderBody = (renderArgs, store) => {
+const renderBody = async (renderArgs, store, client) => {
   const felaRenderer = configureFela();
-  const html = renderToString(
-    <BaseRoot felaRenderer={felaRenderer} store={store}>
+  const app = (
+    <BaseRoot felaRenderer={felaRenderer} client={client} store={store}>
       <RouterProvider router={renderArgs.router}>
         {createRouterRender(renderArgs)}
       </RouterProvider>
-    </BaseRoot>,
+    </BaseRoot>
   );
+  await getDataFromTree(app);
+  const html = renderToString(app);
   const helmet = Helmet.rewind();
   const css = felaRenderer.renderToString();
   return { html, helmet, css };
@@ -94,11 +100,22 @@ const renderHtml = (state, body) => {
 
 const render = async (req: Object, res: Object, next: Function) => {
   const found = configureFound(Root.routeConfig, new ServerProtocol(req.url));
-  const store = createStore(found, req);
+  const headers = req.headers;
+  const client = initClient(headers);
+  const store = createStore(found, req, client);
   try {
-    await found.getRenderArgs(store, renderArgs => {
-      const body = renderBody(renderArgs, store);
-      const html = renderHtml(store.getState(), body);
+    await found.getRenderArgs(store, async renderArgs => {
+      const body = await renderBody(renderArgs, store, client);
+      const state = store.getState();
+
+      const initialState = {
+        ...state,
+        apollo: {
+          data: client.getInitialState().data,
+        },
+      };
+
+      const html = renderHtml(initialState, body);
       res.status(renderArgs.error ? renderArgs.error.status : 200).send(html);
     });
   } catch (error) {

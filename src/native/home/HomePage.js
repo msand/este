@@ -9,6 +9,7 @@ import {
   Text,
   ToggleBaseline,
 } from '../../common/components';
+import FeedWithData from '../components/Feed';
 
 // // An example how to style existing component.
 // const StyledSlider = (props) => (
@@ -49,6 +50,7 @@ const HomePage = () => (
       </Box>
       <SwitchTheme themes={themes} />
       <ToggleBaseline />
+      <FeedWithData />
     </Box>
   </ScrollView>
 );

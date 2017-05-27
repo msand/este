@@ -13,6 +13,7 @@ import {
   ToggleBaseline,
 } from '../../common/components';
 import { Link, Title } from '../components';
+import FeedWithData from '../components/Feed';
 
 const HomePage = () => (
   <Box>
@@ -60,6 +61,7 @@ const HomePage = () => (
     </Box>
     <SwitchTheme themes={themes} />
     <ToggleBaseline />
+    <FeedWithData />
   </Box>
 );
 export default HomePage;

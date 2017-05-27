@@ -54,10 +54,11 @@ const ConnectedRouter = createConnectedRouter({
 type RootProps = {
   renderArgs: Object,
   store: Object,
+  client: Object,
 };
 
-const Root = ({ renderArgs, store }: RootProps) => (
-  <BaseRoot store={store}>
+const Root = ({ renderArgs, store, client }: RootProps) => (
+  <BaseRoot client={client} store={store}>
     <ConnectedRouter
       initialRenderArgs={renderArgs}
       matchContext={{ store }}

@@ -2,7 +2,7 @@
 import Fela from '../../common/components/FelaProvider';
 import React from 'react';
 import configureFela from '../configureFela';
-import { Provider as Redux } from 'react-redux';
+import { ApolloProvider } from 'react-apollo';
 
 const getFelaMountNode = () => {
   const node = document.getElementById('stylesheet');
@@ -52,18 +52,20 @@ const DivButton = (
 type BaseRootProps = {
   children?: any,
   felaRenderer?: Object,
+  client: Object,
   store: Object,
 };
 
 // This is reused in src/server/frontend/render.js
 const BaseRoot = (
   {
+    client,
     store,
     felaRenderer = configureFela(),
     children,
   }: BaseRootProps,
 ) => (
-  <Redux store={store}>
+  <ApolloProvider client={client} store={store}>
     <Fela
       Button={props => <DivButton {...props} />}
       Image={props => <img {...props} />} // eslint-disable-line jsx-a11y/img-has-alt
@@ -75,7 +77,7 @@ const BaseRoot = (
     >
       {children}
     </Fela>
-  </Redux>
+  </ApolloProvider>
 );
 
 export default BaseRoot;

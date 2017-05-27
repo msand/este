@@ -36,7 +36,7 @@ const resetStateOnSignOutReducer = (reducer, initialState) =>
     return reducer(stateWithoutSensitiveData, action);
   };
 
-const configureReducer = (platformReducers: Object, initialState: Object) => {
+const configureReducer = (platformReducers: Object, initialState: Object, apollo: Object) => {
   // $FlowFixMe
   let reducer = combineReducers({
     ...platformReducers,
@@ -48,6 +48,7 @@ const configureReducer = (platformReducers: Object, initialState: Object) => {
     intl,
     todos,
     users,
+    apollo,
   });
 
   // The power of higher-order reducers, http://slides.com/omnidan/hor

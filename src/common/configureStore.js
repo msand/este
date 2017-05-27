@@ -6,6 +6,7 @@ import { applyMiddleware, createStore, compose } from 'redux';
 import { autoRehydrate } from 'redux-persist';
 
 type Options = {
+  client: Object,
   initialState: Object,
   platformDeps?: Object,
   platformReducers?: Object,
@@ -15,6 +16,7 @@ type Options = {
 
 const configureStore = (options: Options) => {
   const {
+    client,
     initialState,
     platformDeps = {},
     platformMiddleware = [],
@@ -22,9 +24,12 @@ const configureStore = (options: Options) => {
     platformStoreEnhancers = [],
   } = options;
 
-  const reducer = configureReducer(platformReducers, initialState);
+  const apolloReducer = client.reducer();
+
+  const reducer = configureReducer(platformReducers, initialState, apolloReducer);
 
   const middleware = configureMiddleware(
+    client,
     initialState,
     platformDeps,
     platformMiddleware,
@@ -49,14 +54,14 @@ const configureStore = (options: Options) => {
       module.hot.accept(() => {
         const configureReducer = require('./configureReducer').default;
 
-        store.replaceReducer(configureReducer(platformReducers, initialState));
+        store.replaceReducer(configureReducer(platformReducers, initialState, apolloReducer));
       });
     } else {
       // Webpack for some reason needs accept with the explicit path.
       module.hot.accept('./configureReducer', () => {
         const configureReducer = require('./configureReducer').default;
 
-        store.replaceReducer(configureReducer(platformReducers, initialState));
+        store.replaceReducer(configureReducer(platformReducers, initialState, apolloReducer));
       });
     }
   }

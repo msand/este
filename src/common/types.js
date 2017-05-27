@@ -6,6 +6,8 @@
 // Core
 
 export type Deps = {
+  apollo: any,
+  storage: any,
   FBSDK: any,
   firebase: any,
   firebaseAuth: Function,

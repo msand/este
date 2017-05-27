@@ -6,10 +6,12 @@ import ReactNativeI18n from 'react-native-i18n';
 import Root from './app/Root';
 import configureStorage from '../common/configureStorage';
 import configureStore from '../common/configureStore';
+import initClient from '../common/lib/apollo/initClient';
 import initialState from './initialState';
 import uuid from 'react-native-uuid';
 import { AppRegistry, AsyncStorage } from 'react-native';
 import { persistStore } from 'redux-persist';
+import codePush from 'react-native-code-push';
 
 const getDefaultDeviceLocale = () => {
   const { defaultLocale, locales } = initialState.intl;
@@ -29,12 +31,18 @@ const createNativeInitialState = () => ({
   },
 });
 
+const nativeInitialState = createNativeInitialState();
+
+const headers = {};
+const client = initClient(headers, nativeInitialState, AsyncStorage);
+
 const store = configureStore({
-  initialState: createNativeInitialState(),
-  platformDeps: { FBSDK, uuid },
+  initialState: client.initialState,
+  platformDeps: { FBSDK, uuid, storage: AsyncStorage },
+  client,
 });
 
-const Este = () => <Root store={store} />;
+const Este = () => codePush(<Root client={client} store={store} />);
 
 persistStore(
   store,

@@ -7,6 +7,7 @@ import isReactNative from '../../common/app/isReactNative';
 import { Actions as FarceActions } from 'farce';
 import { Observable } from 'rxjs/Observable';
 import { ValidationError } from '../lib/validation';
+import { gql } from 'react-apollo';
 
 export const onAuth = (firebaseUser: ?Object): Action => ({
   type: 'ON_AUTH',
@@ -85,13 +86,39 @@ const resetPasswordEpic = (action$: any, { firebaseAuth }: Deps) =>
 
 const facebookPermissions = ['email', 'public_profile', 'user_friends'];
 
-const signInEpic = (action$: any, { FBSDK, firebaseAuth, validate }: Deps) => {
+const authMutation = gql`
+  mutation auth($input: AuthenticateInput!){
+    authenticate(input: $input) {
+      jwtToken
+    }
+  }`;
+
+const signInEpic = (action$: any, { apollo, FBSDK, firebaseAuth, storage, validate }: Deps) => {
   // groups.google.com/forum/#!msg/firebase-talk/643d_lwUAMI/bfQyn8D-BQAJ
   // stackoverflow.com/a/33997042/233902
   // Workaround still needed with Firebase 3.6.8
   const isMobileFacebookApp = () => {
     const ua = navigator.userAgent || navigator.vendor; // eslint-disable-line no-undef
     return ua.indexOf('FBAN') > -1 || ua.indexOf('FBAV') > -1;
+  };
+
+  const signInWithApollo = options => {
+    const { email, password } = options;
+    const input = {
+      email,
+      password,
+    };
+    const promise = validateEmailAndPassword(validate, input).then(
+      () => apollo.mutate({ mutation: authMutation, variables: { input } }),
+    );
+    return Observable.from(promise)
+      .map(apolloUser => {
+        const token = apolloUser.data.authenticate.jwtToken;
+        if (!token) return signInFail(new Error('Wrong username or password'));
+        storage.setItem('token', token);
+        return signInDone(apolloUser);
+      })
+      .catch(error => Observable.of(signInFail(error)));
   };
 
   const signInWithEmailAndPassword = options => {
@@ -157,6 +184,9 @@ const signInEpic = (action$: any, { FBSDK, firebaseAuth, validate }: Deps) => {
       }
       if (providerName === 'password') {
         return signInWithEmailAndPassword(options);
+      }
+      if (providerName === 'apollo') {
+        return signInWithApollo(options);
       }
       // TODO: Add more providers.
       invariant(

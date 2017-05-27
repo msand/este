@@ -4,10 +4,11 @@ import Fela from '../../common/components/FelaProvider';
 import React from 'react';
 import configureFela from '../configureFela';
 import { MemoryRouter } from 'react-router';
-import { Provider as Redux } from 'react-redux';
+import { ApolloProvider } from 'react-apollo';
 import { Image, Text, TextInput, TouchableOpacity, View } from 'react-native';
 
 type Props = {
+  client: Object,
   store: Object,
 };
 
@@ -17,9 +18,9 @@ class Root extends React.Component {
   props: Props;
 
   render() {
-    const { store } = this.props;
+    const { client, store } = this.props;
     return (
-      <Redux store={store}>
+      <ApolloProvider client={client} store={store}>
         <Fela
           Button={TouchableOpacity}
           Image={Image}
@@ -32,7 +33,7 @@ class Root extends React.Component {
             <App />
           </MemoryRouter>
         </Fela>
-      </Redux>
+      </ApolloProvider>
     );
   }
 }
