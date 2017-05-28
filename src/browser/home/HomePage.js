@@ -14,10 +14,12 @@ import {
 } from '../../common/components';
 import { Link, Title } from '../components';
 import FeedWithData from '../components/Feed';
+import RNWebHelloWorld from '../../../../structor-starter/app/components/RNWebHelloWorld/';
 
 const HomePage = () => (
   <Box>
     <Title message="Este.js" />
+    <RNWebHelloWorld />
     <PageHeader
       heading="Este"
       description="Starter kit for universal full–fledged React apps. One stack

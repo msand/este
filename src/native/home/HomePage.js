@@ -10,6 +10,7 @@ import {
   ToggleBaseline,
 } from '../../common/components';
 import FeedWithData from '../components/Feed';
+import RNWebHelloWorld from '../../../../structor-starter/app/components/RNWebHelloWorld/';
 
 // // An example how to style existing component.
 // const StyledSlider = (props) => (
@@ -26,6 +27,7 @@ const HomePage = () => (
       <Text align="center" size={3}>
         Welcome to Este
       </Text>
+      <RNWebHelloWorld />
       <Box marginVertical={1}>
         {Platform.OS === 'ios'
           ? <Box alignItems="center">
